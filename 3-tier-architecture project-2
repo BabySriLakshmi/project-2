@@ -1,0 +1,259 @@
+project-2
+
+Module-1:
+
+creation of VPC:
+1.1 name for the vpc:3-tier-archt
+1.2 Az's=2(To ensure high availability. If one Availability Zone fails, the application continues running in the other)
+1.3 public subnet=2,private subnet=2(2 Public Subnets One public subnet is created in each Availability Zone to host internet-facing resources like a Load Balancer or Bastion Host. 2 Private Subnets One private subnet is created in each Availability Zone to host secure resources like application servers and databases)
+1.4 NAT gateway=1 per zone(1 NAT Gateway per Zone Private instances need internet access for updates, but should not be accessible from the internet. One NAT Gateway per AZ also avoids a single point of failure)
+1.5 VPC end point none(No VPC Endpoints VPC Endpoints are only needed when you want private access to AWS services like S3 or DynamoDB. This project doesn't require them)
+1.6 launch VPC
+1.7 check VPC
+If we choose other options, what happened?
+1 Availability Zone? → If that AZ goes down, your application stops.
+Only Public Subnets? → Databases become exposed to the internet, which is not secure.
+Only Private Subnets? → Users cannot access your application from the internet.
+1 NAT Gateway for the whole VPC? → Cheaper, but if it fails, private instances in all AZs lose internet access.
+ Enable IPv6? → Not needed for most beginner projects and adds unnecessary complexity
+
+Module-2:
+
+creation of auto scaling groups:                                                                
+
+Launch Template-Stores the instance configuration so the Auto Scaling Group can launch identical instances automatically.
+Template Name & Description-Helps identify and manage the template easily later.                  
+Ubuntu AMI- Ubuntu is free, widely used, lightweight, and beginner-friendly.                                          
+t3.micro- Eligible for AWS Free Tier and sufficient for basic testing.                                              
+Create New Key Pair- Provides secure SSH access to instances.                                                                  
+Create New Security Group-Allows defining custom network access rules for the application.                                          
+Security Group Name & Description-Makes the security group's purpose easy to recognize.                                                    
+Select Existing VPC-Ensures instances are launched within the correct network environment.                                    
+Edit Inbound Rules-Controls which traffic is allowed to reach the instances.                                                
+Custom TCP Port 8000 from Anywhere Allows users to access the application running on port 8000.                                              
+SSH from Anywhere-Allows administrators to remotely connect to the instance for management.                                
+Create Launch Template-Saves all configurations for future instance launches.                                                    
+Refresh Auto Scaling Group Page-Loads the newly created launch template so it can be selected.                                            
+Why not choose other options?
+Other AMIs → May cost more, use more resources, or not match your application requirements.
+Larger instance types → Higher cost and unnecessary for basic practice/testing.
+Existing key pair → Use only if you already have and manage one securely.
+Existing security group→ Might contain rules that don't fit your application.
+Different ports → Only needed if your application listens on those ports.
+Restricting SSH/IPs → More secure for production, but "Anywhere" is often used in labs for simplicity.
+
+module-3:
+
+Create Auto Scaling Group:
+
+To automatically create, remove, and manage EC2 instances based on demand.
+Reason: Keeps your application available even if an instance fails.
+Name:
+To identify your Auto Scaling Group.
+Reason: Makes it easy to manage multiple ASGs.
+Select Created Launch Template:
+A Launch Template contains the EC2 configuration (AMI, instance type, key pair, security group, etc.).
+Reason: Every new EC2 instance will use the same settings.
+Select VPC:
+To decide which network the EC2 instances will be launched in.
+Reason: Ensures instances are created in the correct private network.
+Select Availability Zones (Private 1 & Private 2):
+To launch instances in multiple Availability Zones.
+Reason: If one Availability Zone fails, the other continues running, improving high availability.
+Next:
+Moves to the next configuration page.
+No Load Balancer:
+No load balancer is attached.
+Reason: Used when you're only practicing Auto Scaling or don't need to distribute traffic.
+Next:
+Continues to the next step.
+Desired Capacity = 2:
+Starts with 2 EC2 instances.
+Reason: Your application begins with two running servers.
+Min Capacity = 1:
+Keeps at least 1 EC2 instance running.
+Reason: Prevents the application from going completely offline.
+Max Capacity = 4:
+Allows up to 4 EC2 instances.
+Reason: Handles increased traffic by adding more servers when needed.
+Scaling Policy = None:
+No automatic scaling rules are configured.
+Reason: The number of instances won't change automatically unless you update it manually.
+Add Notification = No:
+No email or SNS notifications are sent.
+Reason: Notifications are optional and not needed for basic practice.
+Create Auto Scaling Group:
+Saves all the settings and creates the ASG.
+Reason: AWS starts managing the EC2 instances automatically.
+Check the Status:
+Verify that 2 EC2 instances are created in the selected private subnets.
+Reason: Confirms that the Auto Scaling Group is working correctly.
+
+module-4:
+
+Creating Bastion host:
+
+Search for EC2 Instance:
+To create a new EC2 instance.
+Reason: This instance will be used as the Bastion Host.
+Create Similar to EC2 Instance Creation:
+Follow the normal EC2 creation process.
+Reason: A Bastion Host is also an EC2 instance.
+Name, Ubuntu, t3.micro, Key Pair:
+Name: Identifies the Bastion Host.
+Ubuntu: Easy to use and supports SSH.
+t3.micro: Free Tier eligible and sufficient for a Bastion Host.
+Key Pair: Required to securely log in using SSH.
+Create Security Group:
+Controls incoming and outgoing traffic.
+Reason: Acts like a firewall for the Bastion Host.
+Allow SSH Traffic from Anywhere:
+Allows SSH (Port 22) access.
+Reason: Lets you connect from your laptop to the Bastion Host.
+Edit Network Settings:
+Configure networking for the instance.
+Reason: Place the Bastion Host in the correct VPC and subnet.
+Select Your VPC:
+Choose the VPC you created.
+Reason: The Bastion Host and private EC2 instances must be in the same VPC to communicate.
+Select Public-1 Subnet Only:
+Launch the Bastion Host in a public subnet:
+Reason: Only public subnets can provide internet access.
+Assign Auto Public IP:
+Gives the Bastion Host a public IP address.
+Reason: Without a public IP, you cannot connect to it from your laptop.
+Launch Instance:
+Creates the Bastion Host.
+Reason: After launching, you can SSH into it and then access the private EC2 instances.
+
+Module-5:
+
+Open mobaXterm:
+
+Open MobaXterm
+To connect to Linux EC2 instances using SSH:
+Reason: MobaXterm is an SSH client that provides a terminal and file transfer (SFTP).
+Click on New Session:
+To create a new SSH connection.
+Reason: Every remote server requires a separate session.
+ Select SSH:
+SSH (Secure Shell) is the protocol used.
+Reason: It securely connects your computer to the EC2 instance.
+Enter Bastion Host Public IP:
+Paste the Bastion Host's public IP.
+Reason: Your laptop can access only the Bastion Host because it has a public IP.
+Username = ubuntu:
+Ubuntu EC2 instances use ubuntu as the default username.
+Reason: AWS creates this user automatically.
+Select Key Pair (.pem):
+Choose the private key you created.
+Reason: The key pair authenticates you securely without a password.
+ SFTP Panel:
+Shows the remote server's files.
+Reason: Makes it easy to upload or download files.
+ Drag the .pem File to SFTP:
+Upload the key to the Bastion Host.
+Reason: The Bastion Host needs the key to connect to the private EC2 instance.
+Run Commands:
+Configure the key and connect to the private instance.
+Reason: Linux commands prepare secure access.
+ chmod 400 your_key.pem:
+Changes the permissions of the key file.
+Reason: SSH only accepts private keys that are readable only by the owner. Otherwise, SSH rejects the key.
+ ssh -i project_final key.pem ubuntu@<private-ip>:
+Connects from the Bastion Host to the private EC2 instance.
+Reason: Private instances cannot be accessed directly from the internet.
+ Login Successful:
+You are now inside the private EC2 instance.
+Reason: You can install software and manage the server securely.
+
+Module 6 :
+
+ Creating Files:
+
+vim index.html:
+Opens or creates an HTML file.
+Reason: vim is a Linux text editor.
+Press i:
+Enters Insert Mode.
+Reason: Allows you to type and edit the file.
+Write HTML Cod
+Add content like <h1> and <p>.
+Reason: This creates a simple web page
+Press Esc:
+Exits Insert Mode.
+Reason: Lets you enter commands in Vim.
+Type :wq:
+w = Save (write), q = Quit.
+Reason: Saves the file and closes Vim.
+cat index.html:
+Displays the contents of the file.
+Reason: Confirms that your HTML file was saved correctly.
+
+Module 7 :
+
+Application Load Balancer (ALB)
+
+Open AWS Load Balancer:
+Open the EC2 Dashboard.
+Navigate to Load Balancers under Load Balancing.
+Reason: The Load Balancer distributes incoming traffic across multiple EC2 instances, improving availability and performance.
+Create a Target Group (Before Creating the Load Balancer):
+Click Target Groups.
+Reason: A Target Group tells the Load Balancer which EC2 instances should receive incoming requests.
+Click Create Target Group:
+Reason: Creates a logical group of backend EC2 instances.
+Choose Target Type: Instances
+Reason: Traffic will be routed directly to EC2 instances.
+Set Protocol: HTTP
+Reason: The web application communicates over the HTTP protocol.
+Set Port: 8000:
+Reason: The application running on the EC2 instances listens on Port 8000.
+Select Your VPC:
+Reason: The Target Group must belong to the same VPC as the EC2 instances.
+Enter Target Group Name
+Reason: A meaningful name helps identify the Target Group easily.
+
+Click Next
+
+Reason: Proceed to register backend EC2 instances.
+Register Targets:
+
+Select the two public EC2 instances:
+Do NOT select the Bastion Host.
+Reason: Only the application servers should receive user traffic. The Bastion Host is used only for SSH access.
+Click Include as Pending Below
+Reason: Registers the selected EC2 instances with the Target Group.
+Click Create Target Group
+Reason: Completes the Target Group configuration.
+Create the Application Load Balancer
+Go back to Load Balancers.
+Click Create Load Balancer.
+Choose Application Load Balancer.
+Reason: An Application Load Balancer distributes HTTP/HTTPS traffic across multiple backend servers.
+Enter Load Balancer Name:
+Reason: Makes it easier to identify the Load Balancer.
+Scheme: Internet-facing
+Reason: Allows users on the internet to access the application.
+IP Address Type: IPv4
+Reason: Provides IPv4 connectivity for client requests.
+Select the VPC:
+Choose the same VPC used by the EC2 instances.
+Reason: The Load Balancer and Target Group must be in the same VPC.
+Select Availability Zones:
+Choose two Availability Zones.
+Select Public Subnets:
+Reason: Using multiple Availability Zones improves high availability and fault tolerance.
+Select the Security Group:
+Choose the previously created Load Balancer Security Group.
+Reason: The Security Group controls inbound and outbound traffic to the Load Balancer.
+Configure Listener
+Protocol: HTTP
+Port: 80
+Forward requests to the created Target Group.
+Reason: The Listener receives client requests and forwards them to the Target Group.
+Review Configuration
+Verify all settings.
+Click Create Load Balancer:
+Reason: Creates the Application Load Balancer.
+Verify the Load Balancer
